@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Resumen de Turno - Policía Nacional</title>
+
+<style>
+  :root{
+    --verde:#0A2F4F;
+    --verde-oscuro:#062038;
+    --dorado:#C9A227;
+    --dorado-claro:#E9C558;
+    --card:#0E3A5E;
+    --text:#F5F3EA;
+    --muted:#B7C4D6;
+    --line:#1B4E73;
+    --danger:#D9534F;
+    --azul:#1B4F72;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    -webkit-text-size-adjust:100%;
+    -webkit-tap-highlight-color:transparent;
+    background:#061A13;
+    font-family:'Segoe UI', system-ui, sans-serif;
+    color:var(--text);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px 12px 60px;
+  }
+  h2.page-title{ font-size:15px; color:var(--muted); margin:0 0 16px; font-weight:600; text-align:center; }
+
+  button,input,select,textarea{ -webkit-appearance:none; appearance:none; }
+  button{ touch-action:manipulation; }
+  input,select,textarea{ -webkit-user-select:text; user-select:text; }
+  #layout{ display:flex; gap:24px; flex-wrap:wrap; justify-content:center; align-items:flex-start; }
+
+  /* --- FORM --- */
+  #form{
+    width:390px;
+    background:#0C2A20;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px;
+  }
+  #form h3{ margin:0 0 14px; font-size:13px; color:var(--dorado-claro); text-transform:uppercase; letter-spacing:1px; }
+  .field{ margin-bottom:12px; }
+  .field label{ display:block; font-size:12px; color:var(--muted); margin-bottom:4px; }
+  .field input, .field select, .field textarea{
+    width:100%;
+    background:#08201A;
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:8px 10px;
+    border-radius:8px;
+    font-size:14px;
+    font-family:inherit;
+  }
+  .field input:disabled{ opacity:0.75; }
+  .field textarea{ resize:vertical; min-height:36px; }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:1px solid var(--dorado); }
+
+  .row2{ display:flex; gap:8px; }
+  .row2 .field{ flex:1; }
+
+  fieldset{
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:14px;
+  }
+  legend{ font-size:12px; color:var(--dorado-claro); padding:0 6px; text-transform:uppercase; letter-spacing:1px; }
+
+  .dyn-item{
+    background:#08201A;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    margin-bottom:8px;
+    position:relative;
+  }
+  .dyn-item .remove{
+    border:0;background:transparent;padding:8px;
+    position:absolute;
+    top:6px;
+    right:8px;
+    color:var(--danger);
+    cursor:pointer;
+    font-size:13px;
+  }
+  .add-btn{
+    width:100%;
+    background:transparent;
+    border:1px dashed var(--dorado);
+    color:var(--dorado-claro);
+    padding:8px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:13px;
+    margin-top:2px;
+  }
+
+  #form button.save{
+    width:100%;
+    background:var(--dorado);
+    color:#0C2A20;
+    border:none;
+    padding:11px;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:14px;
+    margin-top:6px;
+  }
+
+  #history{ margin-top:16px; border-top:1px solid var(--line); padding-top:12px; }
+  #history h4{ font-size:12px; color:var(--muted); margin:0 0 8px; text-transform:uppercase; }
+  .hist-item{ display:flex; justify-content:space-between; font-size:13px; padding:6px 0; cursor:pointer; border-bottom:1px solid var(--line); }
+  .hist-item:hover{ color:var(--dorado-claro); }
+  .hist-item .del{ color:var(--danger); font-size:12px; }
+
+  /* --- REPORT CARD --- */
+  #reportWrap{ display:flex; flex-direction:column; align-items:center; gap:14px; }
+  #toolbar{ display:flex; gap:10px; }
+  button.action{
+    background:var(--dorado);
+    color:#0C2A20;
+    border:none;
+    padding:10px 16px;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:13px;
+  }
+  button.action.secondary{ background:transparent; color:var(--dorado-claro); border:1px solid var(--dorado); }
+
+  #report{
+    width:400px;
+    background:var(--card);
+    border:2px solid var(--dorado);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .rep-topbar{
+    background:var(--verde-oscuro);
+    padding:14px 18px;
+    text-align:center;
+    border-bottom:3px solid var(--dorado);
+  }
+  .rep-topbar .escudo{
+    font-size:28px;
+    line-height:1;
+    margin-bottom:4px;
+  }
+  .rep-topbar .institucion{
+    font-size:13px;
+    font-weight:800;
+    letter-spacing:1px;
+    color:var(--dorado-claro);
+    text-transform:uppercase;
+  }
+  .rep-topbar .lema{
+    font-size:10px;
+    color:var(--muted);
+    letter-spacing:2px;
+    text-transform:uppercase;
+    margin-top:2px;
+  }
+
+  .rep-body{ padding:18px; }
+
+  .rep-header{ text-align:center; margin-bottom:14px; }
+  .rep-header h1{ font-size:16px; margin:0 0 2px; color:var(--text); }
+  .rep-header .sub{ font-size:12px; color:var(--dorado-claro); font-weight:700; }
+
+  .section-title{
+    font-size:11.5px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin:14px 0 8px;
+    padding:5px 8px;
+    border-radius:6px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .section-title.op{ background:#4a3f0f; color:var(--dorado-claro); }
+  .section-title.ley{ background:#4a2f14; color:#F2A24E; }
+  .section-title.reg{ background:var(--azul); color:#AED6F1; }
+
+  .op-item{
+    font-size:12.5px;
+    line-height:1.55;
+    margin-bottom:9px;
+    padding-bottom:9px;
+    border-bottom:1px solid var(--line);
+  }
+  .op-item:last-child{ border-bottom:none; }
+  .op-item b{ color:var(--dorado-claro); }
+  .op-item .campo{ color:var(--muted); }
+
+  .ley-row{ display:flex; justify-content:space-between; font-size:13px; padding:4px 0; }
+  .ley-total{
+    margin-top:8px;
+    padding-top:8px;
+    border-top:2px solid var(--dorado);
+    font-weight:800;
+    font-size:13.5px;
+    color:var(--dorado-claro);
+    text-align:center;
+  }
+
+  .reg-row{ display:flex; justify-content:space-between; font-size:13px; padding:4px 0; }
+
+  .footer-sign{
+    margin-top:18px;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+    text-align:center;
+    font-size:13px;
+  }
+  .footer-sign .nombre{ font-weight:800; color:var(--text); }
+  .footer-sign .cargo{ color:var(--dorado-claro); font-size:11.5px; margin-top:2px; text-transform:uppercase; letter-spacing:0.5px; }
+
+  #copyFeedback{ font-size:13px; color:var(--dorado-claro); min-height:16px; }
+@media (max-width: 760px){
+    body{padding:12px 8px 40px;}
+    #layout{width:100%;display:block;}
+    #form,#report{width:min(100%,420px);margin:0 auto;}
+    #reportWrap{margin-top:18px;}
+    #toolbar{width:min(100%,420px);display:grid;grid-template-columns:1fr 1fr;}
+    button.action{min-height:46px;font-size:14px;}
+    .row2{flex-direction:column;gap:0;}
+    .field input,.field select,.field textarea{font-size:16px;min-height:42px;}
+    .add-btn,#form button.save{min-height:44px;}
+  }
+</style>
+</head>
+<body>
+
+<h2 class="page-title">Resumen de turno — Policía Nacional de Colombia</h2>
+
+<div id="layout">
+
+  <div id="form">
+    <h3>Datos del turno</h3>
+
+    <div class="row2">
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="fecha">
+      </div>
+      <div class="field">
+        <label>Turno</label>
+        <select id="turno">
+          <option value="Primer Turno">Primer Turno</option>
+          <option value="Segundo Turno">Segundo Turno</option>
+          <option value="Tercer Turno" selected>Tercer Turno</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Unidad / Grupo</label>
+      <input type="text" id="unidad" value="MEMAZ">
+    </div>
+
+    <fieldset>
+      <legend>🟨 Operatividad</legend>
+      <div id="opList"></div>
+      <button type="button" class="add-btn" onclick="agregarOperatividad()">+ Agregar motivo de policía</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>🟧 Aplicación Ley 1801</legend>
+      <div id="leyList"></div>
+      <button type="button" class="add-btn" onclick="agregarLey()">+ Agregar artículo</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>🟦 Registros</legend>
+      <div class="row2">
+        <div class="field">
+          <label>Motivos atendidos SECAD</label>
+          <input type="number" id="secad" placeholder="153">
+        </div>
+        <div class="field">
+          <label>Mediación policial</label>
+          <input type="number" id="mediacion" placeholder="02">
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="field">
+      <label>Nombre del supervisor</label>
+      <input type="text" id="supervisor" placeholder="ST. DARCY CONTRERAS">
+    </div>
+    <div class="field">
+      <label>Cargo</label>
+      <input type="text" id="cargo" value="Supervisor del Servicio" disabled>
+    </div>
+
+    <button class="save" onclick="guardarDia()">💾 Guardar resumen</button>
+
+    <div id="history">
+      <h4>Resúmenes guardados</h4>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <div id="reportWrap">
+    <div id="toolbar">
+      <button class="action" onclick="descargarImagen()">📷 Imagen</button>
+      <button class="action secondary" onclick="copiarWhatsapp()">💬 WhatsApp</button>
+    </div>
+
+    <div id="report">
+      <div class="rep-body">
+        <div class="rep-header">
+          <h1 id="r_titulo">MEMAZ — Resumen de Turno</h1>
+          <div class="sub" id="r_fechaTurno">Sin datos aún</div>
+        </div>
+
+        <div class="section-title op">🟨 Operatividad</div>
+        <div id="r_opList"></div>
+
+        <div class="section-title ley">🟧 Aplicación Ley 1801</div>
+        <div id="r_leyList"></div>
+        <div class="ley-total" id="r_leyTotal">Total 0 aplicaciones ley 1801</div>
+
+        <div class="section-title reg">🟦 Registros</div>
+        <div class="reg-row"><span>Motivos atendidos SECAD</span><span id="r_secad">–</span></div>
+        <div class="reg-row"><span>Mediación policial</span><span id="r_mediacion">–</span></div>
+
+        <div class="footer-sign">
+          <div class="nombre" id="r_supervisor">—</div>
+          <div class="cargo" id="r_cargo">Supervisor del Servicio</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="copyFeedback"></div>
+  </div>
+
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  let opCount = 0, leyCount = 0;
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+
+  function toast(msg) {
+    const el = $('copyFeedback');
+    if (el) {
+      el.textContent = msg;
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => el.textContent = '', 4500);
+    }
+  }
+
+  window.agregarOperatividad = function(valores = {}) {
+    opCount++;
+    const id = 'op' + opCount;
+    const div = document.createElement('div');
+    div.className = 'dyn-item';
+    div.id = id;
+    div.innerHTML = `
+      <button type="button" class="remove" aria-label="Eliminar motivo">✕</button>
+      <div class="row2">
+        <div class="field"><label>Hora</label><input type="text" class="op-hora" placeholder="14:38 horas"></div>
+      </div>
+      <div class="field"><label>Hecho</label><input type="text" class="op-hecho" placeholder="Detonación artefacto explosivo de bajo poder"></div>
+      <div class="row2">
+        <div class="field"><label>CAI</label><input type="text" class="op-cai" placeholder="CAI Galán"></div>
+        <div class="field"><label>Patrulla</label><input type="text" class="op-patrulla" placeholder="Patrulla 7"></div>
+      </div>
+      <div class="field"><label>Funcionarios</label><input type="text" class="op-funcionarios" placeholder="IT. José Pedraza y SI. Juan Contreras"></div>`;
+    div.querySelector('.remove').addEventListener('click', () => div.remove());
+    $('opList').appendChild(div);
+
+    div.querySelector('.op-hora').value = valores.hora || '';
+    div.querySelector('.op-hecho').value = valores.hecho || '';
+    div.querySelector('.op-cai').value = valores.cai || '';
+    div.querySelector('.op-patrulla').value = valores.patrulla || '';
+    div.querySelector('.op-funcionarios').value = valores.funcionarios || '';
+  };
+
+  window.agregarLey = function(valores = {}) {
+    leyCount++;
+    const id = 'ley' + leyCount;
+    const div = document.createElement('div');
+    div.className = 'dyn-item';
+    div.id = id;
+    div.innerHTML = `
+      <button type="button" class="remove" aria-label="Eliminar artículo">✕</button>
+      <div class="row2">
+        <div class="field"><label>Artículo</label><input type="text" class="ley-articulo" placeholder="27#6"></div>
+        <div class="field"><label>Cantidad</label><input type="number" class="ley-cantidad" placeholder="11" inputmode="numeric"></div>
+      </div>`;
+    div.querySelector('.remove').addEventListener('click', () => div.remove());
+    $('leyList').appendChild(div);
+    div.querySelector('.ley-articulo').value = valores.articulo || '';
+    div.querySelector('.ley-cantidad').value = valores.cantidad || '';
+  };
+
+  function getData() {
+    const fecha = $('fecha').value;
+    return {
+      fecha,
+      turno: $('turno').value,
+      unidad: $('unidad').value,
+      operatividad: [...document.querySelectorAll('#opList .dyn-item')].map(item => ({
+        hora: item.querySelector('.op-hora').value,
+        hecho: item.querySelector('.op-hecho').value,
+        cai: item.querySelector('.op-cai').value,
+        patrulla: item.querySelector('.op-patrulla').value,
+        funcionarios: item.querySelector('.op-funcionarios').value
+      })),
+      ley1801: [...document.querySelectorAll('#leyList .dyn-item')].map(item => ({
+        articulo: item.querySelector('.ley-articulo').value,
+        cantidad: item.querySelector('.ley-cantidad').value
+      })),
+      secad: $('secad').value,
+      mediacion: $('mediacion').value,
+      supervisor: $('supervisor').value,
+      cargo: 'Supervisor del Servicio'
+    };
+  }
+
+  function storageSet(key, value) {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (e) {
+      console.warn(e);
+      return false;
+    }
+  }
+
+  function storageGet(key) {
+    try { return localStorage.getItem(key); } catch(e) { return null; }
+  }
+
+  window.guardarDia = function() {
+    const data = getData();
+    if (!data.fecha) { alert('Elige una fecha'); return; }
+
+    const ok = storageSet('turno:' + data.fecha, JSON.stringify(data));
+    renderReport(data);
+    cargarHistorial();
+
+    if (ok) toast('✅ Resumen guardado correctamente.');
+    else toast('⚠️ El resumen se mostró, pero Safari no permitió guardarlo en este archivo.');
+  };
+
+  window.renderReport = function(data) {
+    $('r_titulo').textContent = (data.unidad || 'MEMAZ') + ' — Resumen de Turno';
+    $('r_fechaTurno').textContent = (data.turno || 'Turno') + ' — ' + data.fecha;
+
+    const opList = $('r_opList');
+    opList.innerHTML = '';
+    data.operatividad.forEach((op, i) => {
+      const el = document.createElement('div');
+      el.className = 'op-item';
+      const partes = [];
+      if (op.cai) partes.push('CAI ' + esc(op.cai));
+      if (op.patrulla) partes.push('Patrulla ' + esc(op.patrulla));
+      if (op.funcionarios) partes.push('Funcionarios: ' + esc(op.funcionarios));
+      el.innerHTML = `<b>${i+1}️⃣ ${esc(op.hora)}</b>, <b>${esc(op.hecho)}</b><br>
+        <span class="campo">Conoce motivo de policía:</span> ${partes.join(', ')}`;
+      opList.appendChild(el);
+    });
+    if (!data.operatividad.length) opList.innerHTML = '<div class="op-item">Sin registros</div>';
+
+    const leyList = $('r_leyList');
+    leyList.innerHTML = '';
+    let total = 0;
+    data.ley1801.forEach(l => {
+      const cant = Number(l.cantidad || 0);
+      total += cant;
+      const row = document.createElement('div');
+      row.className = 'ley-row';
+      row.innerHTML = `<span>✅ ${esc(l.articulo)}</span><span>${String(cant).padStart(2,'0')}</span>`;
+      leyList.appendChild(row);
+    });
+    $('r_leyTotal').textContent = `Total ${total} aplicaciones ley 1801`;
+    $('r_secad').textContent = data.secad || '–';
+    $('r_mediacion').textContent = data.mediacion || '–';
+    $('r_supervisor').textContent = data.supervisor || '—';
+    $('r_cargo').textContent = 'Supervisor del Servicio';
+  };
+
+  window.cargarHistorial = function() {
+    const list = $('historyList');
+    try {
+      const keys = Object.keys(localStorage).filter(k => k.indexOf('turno:') === 0).sort().reverse();
+      list.innerHTML = '';
+      if (!keys.length) {
+        list.innerHTML = '<div style="color:var(--muted);font-size:12px;">Sin resúmenes guardados</div>';
+        return;
+      }
+      keys.forEach(k => {
+        const fecha = k.slice(6);
+        const row = document.createElement('div');
+        row.className = 'hist-item';
+        row.innerHTML = `<span class="hist-load">${esc(fecha)}</span><span class="del">✕</span>`;
+        row.querySelector('.hist-load').addEventListener('click', () => cargarDia(fecha));
+        row.querySelector('.del').addEventListener('click', e => {
+          e.stopPropagation(); borrarDia(fecha);
+        });
+        list.appendChild(row);
+      });
+    } catch(e) {
+      list.innerHTML = '<div style="color:var(--danger);font-size:12px;">Safari no permite el historial en este modo de archivo.</div>';
+    }
+  };
+
+  window.cargarDia = function(fecha) {
+    const raw = storageGet('turno:' + fecha);
+    if (!raw) return;
+    try {
+      const data = JSON.parse(raw);
+      $('fecha').value = data.fecha || '';
+      $('turno').value = data.turno || 'Tercer Turno';
+      $('unidad').value = data.unidad || 'MEMAZ';
+      $('secad').value = data.secad || '';
+      $('mediacion').value = data.mediacion || '';
+      $('supervisor').value = data.supervisor || '';
+      $('opList').innerHTML = '';
+      $('leyList').innerHTML = '';
+      (data.operatividad || []).forEach(agregarOperatividad);
+      (data.ley1801 || []).forEach(agregarLey);
+      renderReport(data);
+      toast('📂 Resumen cargado.');
+    } catch(e) { alert('No se pudo cargar el resumen.'); }
+  };
+
+  window.borrarDia = function(fecha) {
+    if (!confirm('¿Borrar el resumen de ' + fecha + '?')) return;
+    try {
+      localStorage.removeItem('turno:' + fecha);
+      cargarHistorial();
+      toast('🗑️ Resumen eliminado.');
+    } catch(e) { alert('No se pudo borrar el resumen.'); }
+  };
+
+  function buildWhatsappText() {
+    const d = getData();
+    const opTexto = d.operatividad.map((op,i) => {
+      const partes = [];
+      if(op.cai) partes.push('CAI ' + op.cai);
+      if(op.patrulla) partes.push('Patrulla ' + op.patrulla);
+      if(op.funcionarios) partes.push('Funcionarios: ' + op.funcionarios);
+      return `${i+1}️⃣${op.hora}, *${op.hecho}*. Conoce motivo de policía: ${partes.join(', ')}`;
+    }).join('\n\n');
+
+    let total = 0;
+    const leyTexto = d.ley1801.map(l => {
+      const cant = Number(l.cantidad || 0); total += cant;
+      return `✅${l.articulo} = ${String(cant).padStart(2,'0')}`;
+    }).join('\n');
+
+    return `Dios y patria mi Coronel buenas noches respetuosamente envío resumen de ${d.turno} ${d.fecha} ${d.unidad}:
+🟨_*OPERATIVIDAD*_
+${opTexto || 'Sin registros'}
+🟧_*APLICACIÓN LEY 1801*_
+${leyTexto || 'Sin registros'}
+
+*Total ${total} aplicaciones ley 1801*
+
+🟦Motivos de policía atendidos y registrados en SECAD (${d.secad || '0'})
+🟦Mediación policial (${d.mediacion || '0'})
+${d.supervisor || ''}
+*Supervisor del Servicio*`;
+  }
+
+  window.copiarWhatsapp = async function() {
+    const texto = buildWhatsappText();
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: texto, title: 'Resumen de turno' });
+        toast('✅ Compartido. Selecciona WhatsApp.');
+        return;
+      } catch(e) {
+        if (e && e.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(texto);
+        toast('✅ Texto copiado. Abre WhatsApp y pégalo.');
+        return;
+      }
+    } catch(e) {}
+
+    const ta = document.createElement('textarea');
+    ta.value = texto;
+    ta.readOnly = true;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+    toast(ok ? '✅ Texto copiado. Pégalo en WhatsApp.' : '⚠️ Mantén presionado y copia el texto manualmente.');
+  };
+
+  function canvasReport() {
+    const report = $('report');
+    const scale = Math.min(3, Math.max(2, window.devicePixelRatio || 2));
+    const rect = report.getBoundingClientRect();
+    const w = Math.ceil(rect.width);
+    const h = Math.ceil(report.scrollHeight);
+    const canvas = document.createElement('canvas');
+    canvas.width = w * scale;
+    canvas.height = h * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+
+    // Renderiza una representación legible del reporte sin librerías externas.
+    ctx.fillStyle = '#0E3A5E';
+    ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle = '#C9A227';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(1,1,w-2,h-2);
+
+    const pad = 18;
+    let y = 28;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#F5F3EA';
+    ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText($('r_titulo').textContent, w/2, y);
+    y += 20;
+    ctx.fillStyle = '#E9C558';
+    ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText($('r_fechaTurno').textContent, w/2, y);
+    y += 25;
+    ctx.textAlign = 'left';
+
+    function wrap(text, maxWidth, font, lineHeight) {
+      ctx.font = font;
+      const words = String(text).split(/\s+/), lines = [];
+      let line = '';
+      for (const word of words) {
+        const test = line ? line + ' ' + word : word;
+        if (ctx.measureText(test).width > maxWidth && line) {
+          lines.push(line); line = word;
+        } else line = test;
+      }
+      if(line) lines.push(line);
+      lines.forEach(t => { ctx.fillText(t, pad, y); y += lineHeight; });
+    }
+    function section(title) {
+      ctx.fillStyle = '#C9A227'; ctx.font = 'bold 12px -apple-system, sans-serif';
+      ctx.fillText(title, pad, y); y += 20;
+    }
+
+    section('OPERATIVIDAD');
+    const d = getData();
+    ctx.fillStyle = '#F5F3EA';
+    d.operatividad.forEach((op,i) => {
+      wrap(`${i+1}. ${op.hora}, ${op.hecho}`, w-pad*2, '12px -apple-system, sans-serif', 17);
+      wrap(`Conoce motivo de policía: ${[op.cai&&'CAI '+op.cai,op.patrulla&&'Patrulla '+op.patrulla,op.funcionarios&&'Funcionarios: '+op.funcionarios].filter(Boolean).join(', ')}`, w-pad*2, '11px -apple-system, sans-serif', 16);
+      y += 6;
+    });
+    section('APLICACIÓN LEY 1801');
+    let total=0;
+    d.ley1801.forEach(l => { const n=Number(l.cantidad||0); total+=n; wrap(`Artículo ${l.articulo}: ${String(n).padStart(2,'0')}`, w-pad*2, '12px -apple-system, sans-serif', 17); });
+    y += 4; wrap(`Total ${total} aplicaciones ley 1801`, w-pad*2, 'bold 13px -apple-system, sans-serif', 18);
+    section('REGISTROS');
+    wrap(`Motivos atendidos SECAD: ${d.secad || '–'}`, w-pad*2, '12px -apple-system, sans-serif', 17);
+    wrap(`Mediación policial: ${d.mediacion || '–'}`, w-pad*2, '12px -apple-system, sans-serif', 17);
+    y += 10; ctx.textAlign='center';
+    ctx.font='bold 13px -apple-system, sans-serif'; ctx.fillStyle='#F5F3EA';
+    ctx.fillText(d.supervisor || '—', w/2, y); y+=18;
+    ctx.font='11px -apple-system, sans-serif'; ctx.fillStyle='#E9C558';
+    ctx.fillText('SUPERVISOR DEL SERVICIO', w/2, y);
+    return canvas;
+  }
+
+  window.descargarImagen = async function() {
+    try {
+      const canvas = canvasReport();
+      const nombre = 'resumen_turno_' + ($('fecha').value || 'sinfecha') + '.png';
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+
+      if (!blob) throw new Error('No se pudo crear PNG');
+
+      if (navigator.share) {
+        try {
+          const file = new File([blob], nombre, {type:'image/png'});
+          if (!navigator.canShare || navigator.canShare({files:[file]})) {
+            await navigator.share({files:[file], title:'Resumen de turno'});
+            toast('✅ Imagen compartida. Selecciona WhatsApp, Fotos o Archivos.');
+            return;
+          }
+        } catch(e) {
+          if(e && e.name === 'AbortError') return;
+        }
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href=url; a.download=nombre; a.target='_blank';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),5000);
+      toast('📷 Imagen generada.');
+    } catch(e) {
+      console.error(e);
+      alert('No se pudo generar la imagen. Puedes usar una captura de pantalla del reporte.');
+    }
+  };
+
+  function init() {
+    const fecha = $('fecha');
+    if (fecha) {
+      try { fecha.valueAsDate = new Date(); } catch(e) {
+        fecha.value = new Date().toISOString().slice(0,10);
+      }
+    }
+    agregarOperatividad();
+    agregarLey();
+    cargarHistorial();
+
+    // Delegación adicional para botones, útil en navegadores móviles.
+    $('toolbar')?.addEventListener('click', e => {
+      const b=e.target.closest('button');
+      if(!b) return;
+      if(b.matches('.action:not(.secondary)')) window.descargarImagen();
+      if(b.matches('.secondary')) window.copiarWhatsapp();
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+
+</body>
+</html>
